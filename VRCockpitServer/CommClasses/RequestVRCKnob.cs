@@ -8,6 +8,7 @@ namespace VRCockpitServer.CommClasses
 
         public override Task HandleRequest()
         {
+            base.HandleRequest();
             Console.WriteLine($"RequestKnob: {ControlID} Value: {Value}");
             //if (IsPressed)
             //  GPIOManager.SetPin(pinMap[ButtonID])
