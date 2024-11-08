@@ -11,6 +11,9 @@ namespace VRCockpitServer.CommClasses
         {
             ControlStates[ControlID] = this;
 
+            //broadcast new state to other connections
+            //ConnectionsManager.BroadcastResponse(this, ignoredSender: connection);
+
             return Task.CompletedTask;
         }
     }
