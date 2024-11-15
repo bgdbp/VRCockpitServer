@@ -1,4 +1,6 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
 
 namespace VRCockpitServer.CommClasses
 {
@@ -10,10 +12,18 @@ namespace VRCockpitServer.CommClasses
         {
             base.HandleRequest();
             Console.WriteLine($"RequestKnob: {ControlID} Value: {Value}");
-            //if (IsPressed)
-            //  GPIOManager.SetPin(pinMap[ButtonID])
-            //else
-            //  unset pin...
+
+            float correctedValue;
+            if (Value <= 0.5f)
+            {
+                correctedValue = Single.Lerp(0, 0.2f, Value);
+            }
+            else
+            {
+                correctedValue = Single.Lerp(0.2f, 1, (Value - 0.5f) * 2);
+            }
+
+            GPIOManager.SetPwmPin(4, correctedValue);
 
             return Task.CompletedTask;
         }

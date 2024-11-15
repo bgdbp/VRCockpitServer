@@ -3,9 +3,25 @@ using System.Net.Sockets;
 using System.Text;
 using VRCockpitServer;
 
+
+GPIOManager.Init();
+
 string hostName = Dns.GetHostName();
 IPHostEntry localhost = Dns.GetHostEntry(hostName);
-IPAddress localhostIP = localhost.AddressList[3];
+IPAddress localhostIP = localhost.AddressList.First(x => x.AddressFamily == AddressFamily.InterNetwork && !IPAddress.IsLoopback(x));
+
+foreach (var addr in localhost.AddressList)
+{
+    if (localhostIP == addr)
+    {
+        Console.WriteLine(addr.ToString() + " <--- CHOSEN");
+    }
+    else
+    {
+        Console.WriteLine(addr.ToString());
+    }
+}
+
 IPEndPoint tcpEndPoint = new (localhostIP, 11004);
 IPEndPoint udpEndPoint = new (IPAddress.Any, 11000);
 
