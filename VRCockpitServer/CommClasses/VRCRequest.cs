@@ -13,6 +13,6 @@ namespace VRCockpitServer.CommClasses
     [JsonDerivedType(typeof(RequestVRCButton), typeDiscriminator: 3)]
     internal abstract class VRCRequest
     {
-        public abstract Task HandleRequest();
+        public abstract Task HandleRequest(UserSession? user);
     }
 }

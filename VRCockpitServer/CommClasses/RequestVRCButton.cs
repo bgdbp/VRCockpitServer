@@ -6,14 +6,11 @@ namespace VRCockpitServer.CommClasses
     {
         public bool IsPressed { get; set; }
 
-        public override Task HandleRequest()
+        public override Task HandleRequest(UserSession? user)
         {
-            base.HandleRequest();
+            base.HandleRequest(user);
             Console.WriteLine($"RequestButton: {ControlID} IsPressed: {IsPressed}");
-            //if (IsPressed)
-            //  GPIOManager.SetPin(pinMap[ButtonID])
-            //else
-            //  unset pin...
+            GPIOManager.SetButton(IsPressed);
 
             return Task.CompletedTask;
         }

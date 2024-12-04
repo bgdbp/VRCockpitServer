@@ -2,73 +2,94 @@
 using System.Net.Sockets;
 using System.Text;
 using VRCockpitServer;
+using System.IO.Ports;
 
-
-GPIOManager.Init();
-
-string hostName = Dns.GetHostName();
-IPHostEntry localhost = Dns.GetHostEntry(hostName);
-IPAddress localhostIP = localhost.AddressList.First(x => x.AddressFamily == AddressFamily.InterNetwork && !IPAddress.IsLoopback(x));
-
-foreach (var addr in localhost.AddressList)
+async Task Main()
 {
-    if (localhostIP == addr)
+    try
     {
-        Console.WriteLine(addr.ToString() + " <--- CHOSEN");
+        using LEDRingManager ledRingManager = await LEDRingManager.Init();
     }
-    else
+    catch (Exception ex)
     {
-        Console.WriteLine(addr.ToString());
+        Console.WriteLine("LEDRingManager could not be initialized.");
     }
-}
 
-IPEndPoint tcpEndPoint = new (localhostIP, 11004);
-IPEndPoint udpEndPoint = new (IPAddress.Any, 11000);
+    using GPIOManager gpioManager = GPIOManager.Init();
 
-using TcpListener listener = new(tcpEndPoint);
-using UdpClient discoveryClient = new(udpEndPoint);
+    string hostName = Dns.GetHostName();
+    IPHostEntry localhost = Dns.GetHostEntry(hostName);
+    IPAddress localhostIP = localhost.AddressList.First(x => x.AddressFamily == AddressFamily.InterNetwork && !IPAddress.IsLoopback(x));
 
-listener.Start();
-
-List<Task> serverTasks = [receiveAndHandleUDP(), receiveAndHandleTCP()];
-await Task.WhenAll(serverTasks);
-
-async Task receiveAndHandleUDP()
-{
-    while (true)
+    foreach (var addr in localhost.AddressList)
     {
-        var message = await discoveryClient.ReceiveAsync();
-        string messageContents = Encoding.UTF8.GetString(message.Buffer);
-
-        if (messageContents == "VRCDiscover")
+        if (localhostIP == addr)
         {
-            string tcpEndPointMessage = $"VRCDiscover|{tcpEndPoint.Address}|{tcpEndPoint.Port}";
-            byte[] tcpEndPointMessageBytes = Encoding.UTF8.GetBytes(tcpEndPointMessage);
-            await discoveryClient.SendAsync(tcpEndPointMessageBytes, tcpEndPointMessageBytes.Length, message.RemoteEndPoint);
+            Console.WriteLine(addr.ToString() + " <--- CHOSEN");
+        }
+        else
+        {
+            Console.WriteLine(addr.ToString());
         }
     }
-}
-async Task receiveAndHandleTCP()
-{
-    while (true)
+
+    IPEndPoint tcpEndPoint = new (localhostIP, 11004);
+    IPEndPoint udpEndPoint = new (IPAddress.Any, 11000);
+
+    using TcpListener listener = new(tcpEndPoint);
+    using UdpClient discoveryClient = new(udpEndPoint);
+
+    listener.Start();
+
+    List<Task> serverTasks = [receiveAndHandleUDP(), receiveAndHandleTCP()];
+    await Task.WhenAll(serverTasks);
+
+    async Task receiveAndHandleUDP()
     {
-        try
+        while (true)
         {
-            Console.WriteLine("Listening for new connection...");
-            TcpClient client = await listener.AcceptTcpClientAsync();
+            var message = await discoveryClient.ReceiveAsync();
+            string messageContents = Encoding.UTF8.GetString(message.Buffer);
 
-            ConnectionHandler conHandler = new (client);
-
-            var ipEndpoint = (IPEndPoint?)(client.Client.RemoteEndPoint);
-            if (ipEndpoint != null)
+            if (messageContents == "VRCDiscover")
             {
-                Console.WriteLine($"Connected to {ipEndpoint} --- Receiving!");
-                Task task = conHandler.Receive();
+                string tcpEndPointMessage = $"VRCDiscover|{tcpEndPoint.Address}|{tcpEndPoint.Port}";
+                byte[] tcpEndPointMessageBytes = Encoding.UTF8.GetBytes(tcpEndPointMessage);
+                await discoveryClient.SendAsync(tcpEndPointMessageBytes, tcpEndPointMessageBytes.Length, message.RemoteEndPoint);
             }
         }
-        catch (Exception ex)
+    }
+    async Task receiveAndHandleTCP()
+    {
+        while (true)
         {
-            Console.WriteLine($"Connection error: {ex}");
+            try
+            {
+                Console.WriteLine("Listening for new connection...");
+                TcpClient client = await listener.AcceptTcpClientAsync();
+
+                UserSession user = new (client);
+
+                var ipEndpoint = (IPEndPoint?)(client.Client.RemoteEndPoint);
+                if (ipEndpoint != null)
+                {
+                    Console.WriteLine($"Connected to {ipEndpoint} --- Receiving!");
+                    Task task = user.Receive();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Connection error: {ex}");
+            }
         }
     }
+}
+
+try
+{
+    await Main();
+}
+catch (Exception ex)
+{
+    Console.WriteLine(ex.ToString());
 }

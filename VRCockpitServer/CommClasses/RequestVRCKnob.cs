@@ -8,22 +8,12 @@ namespace VRCockpitServer.CommClasses
     {
         public float Value { get; set; }
 
-        public override Task HandleRequest()
+        public override Task HandleRequest(UserSession? user)
         {
-            base.HandleRequest();
+            base.HandleRequest(user);
+
             Console.WriteLine($"RequestKnob: {ControlID} Value: {Value}");
-
-            float correctedValue;
-            if (Value <= 0.5f)
-            {
-                correctedValue = Single.Lerp(0, 0.2f, Value);
-            }
-            else
-            {
-                correctedValue = Single.Lerp(0.2f, 1, (Value - 0.5f) * 2);
-            }
-
-            GPIOManager.SetPwmPin(4, correctedValue);
+            LEDRingManager.Instance.SetKnobValue((byte)(Value * 16));
 
             return Task.CompletedTask;
         }
