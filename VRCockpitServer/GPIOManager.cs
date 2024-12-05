@@ -13,7 +13,6 @@ namespace VRCockpitServer
     {
         public const int JOYSTICK_INPUT_UP = 5;
         public const int JOYSTICK_INPUT_DOWN = 6;
-
         public const int JOYSTICK_OUTPUT_UP = 16;
         public const int JOYSTICK_OUTPUT_DOWN = 26;
 
@@ -21,7 +20,7 @@ namespace VRCockpitServer
         public const int KNOB_INPUT_COUNTERCLOCKWISE = 24;
 
         public const int BUTTON_INPUT = 17;
-        public const int BUTTON_OUTPUT = 27;
+        public const int BUTTON_OUTPUT = 4;
 
         public static GPIOManager? Instance;
 
@@ -43,24 +42,25 @@ namespace VRCockpitServer
 
                 //joystick input
                 controller.OpenPin(JOYSTICK_INPUT_UP, PinMode.InputPullUp);
-                controller.RegisterCallbackForPinValueChangedEvent(JOYSTICK_INPUT_UP, PinEventTypes.Falling, (o, e) => { HandleToggleChange(isOn: true); });
+                controller.RegisterCallbackForPinValueChangedEvent(JOYSTICK_INPUT_UP, PinEventTypes.Falling, (o, e) => HandleToggleChange(isOn: true));
 
                 controller.OpenPin(JOYSTICK_INPUT_DOWN, PinMode.InputPullUp);
-                controller.RegisterCallbackForPinValueChangedEvent(JOYSTICK_INPUT_DOWN, PinEventTypes.Falling, (o, e) => { HandleToggleChange(isOn: false); });
+                controller.RegisterCallbackForPinValueChangedEvent(JOYSTICK_INPUT_DOWN, PinEventTypes.Falling, (o, e) => HandleToggleChange(isOn: false));
 
                 //joystick output
                 controller.OpenPin(JOYSTICK_OUTPUT_UP, PinMode.Output); 
                 controller.OpenPin(JOYSTICK_OUTPUT_DOWN, PinMode.Output); 
 
                 //joystick initialize
-                controller.Write(JOYSTICK_OUTPUT_UP, PinValue.High); //initialize toggle to off position
+                controller.Write(JOYSTICK_OUTPUT_UP, PinValue.Low);
+                controller.Write(JOYSTICK_OUTPUT_DOWN, PinValue.Low);
 
                 //knob input (knob output is handled in LEDRingManager)
                 controller.OpenPin(KNOB_INPUT_CLOCKWISE, PinMode.InputPullUp);
-                controller.RegisterCallbackForPinValueChangedEvent(KNOB_INPUT_CLOCKWISE, PinEventTypes.Falling, (o, e) => { HandleKnobChange(isClockwise: true); });
+                controller.RegisterCallbackForPinValueChangedEvent(KNOB_INPUT_CLOCKWISE, PinEventTypes.Rising, (o, e) => { HandleKnobChange(isClockwise: true); });
 
                 controller.OpenPin(KNOB_INPUT_COUNTERCLOCKWISE, PinMode.InputPullUp);
-                controller.RegisterCallbackForPinValueChangedEvent(KNOB_INPUT_COUNTERCLOCKWISE, PinEventTypes.Falling, (o, e) => { HandleKnobChange(isClockwise: false); });
+                controller.RegisterCallbackForPinValueChangedEvent(KNOB_INPUT_COUNTERCLOCKWISE, PinEventTypes.Rising, (o, e) => { HandleKnobChange(isClockwise: false); });
 
                 //button input
                 controller.OpenPin(BUTTON_INPUT, PinMode.InputPullUp);
@@ -69,6 +69,14 @@ namespace VRCockpitServer
 
                 //button output
                 controller.OpenPin(BUTTON_OUTPUT, PinMode.Output);
+                controller.Write(BUTTON_OUTPUT, PinValue.Low);
+
+                Console.WriteLine($"Toggle up pin mode: {controller.GetPinMode(JOYSTICK_INPUT_UP)}");
+                //Console.WriteLine($"Toggle down pin mode: {controller.GetPinMode(JOYSTICK_INPUT_DOWN)}");
+                Console.WriteLine($"Toggle up pin open: {controller.IsPinOpen(JOYSTICK_INPUT_UP)}");
+                //Console.WriteLine($"Toggle down pin open: {controller.IsPinOpen(JOYSTICK_INPUT_DOWN)}");
+                Console.WriteLine($"Toggle up pin value: {controller.Read(JOYSTICK_INPUT_UP)}");
+                //Console.WriteLine($"Toggle down pin value: {controller.Read(JOYSTICK_INPUT_DOWN)}");
 
             }
             catch (Exception ex)
@@ -77,66 +85,95 @@ namespace VRCockpitServer
             }
         }
 
-
-        public static void HandleToggleChange(bool isOn)
+        void HandleToggleChange(bool isOn)
         {
-            RequestVRCToggle? rToggle = RequestVRCControl.GetControlByID("Lights") as RequestVRCToggle;
+            try
+            {
+                RequestVRCToggle? rToggle = RequestVRCControl.GetControlByID("Lights") as RequestVRCToggle;
 
-            if (rToggle == null)
-                return;
+                if (rToggle == null)
+                    return;
 
-            rToggle.IsOn = isOn;
-            rToggle.HandleRequest(null);
+                if (rToggle.IsOn == isOn)
+                    return;
+
+                Console.WriteLine($"Running!");
+
+                Console.WriteLine($"Toggle state: {isOn}");
+                Console.WriteLine($"Toggle up pin mode: {controller.GetPinMode(JOYSTICK_INPUT_UP)}");
+                //Console.WriteLine($"Toggle down pin mode: {controller.GetPinMode(JOYSTICK_INPUT_DOWN)}");
+                Console.WriteLine($"Toggle up pin open: {controller.IsPinOpen(JOYSTICK_INPUT_UP)}");
+                //Console.WriteLine($"Toggle down pin open: {controller.IsPinOpen(JOYSTICK_INPUT_DOWN)}");
+                Console.WriteLine($"Toggle up pin value: {controller.Read(JOYSTICK_INPUT_UP)}");
+                //Console.WriteLine($"Toggle down pin value: {controller.Read(JOYSTICK_INPUT_DOWN)}");
+
+                rToggle.IsOn = isOn;
+                rToggle.HandleRequest(null);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Toggle Error ({ex.Message})");
+            }
         }
 
-        public static void HandleKnobChange(bool isClockwise)
+        static DateTime knobTS;
+
+        static void HandleKnobChange(bool isClockwise)
         {
-            RequestVRCKnob? rKnob = RequestVRCControl.GetControlByID("Intensity") as RequestVRCKnob;
+            try
+            {
+                if (DateTime.UtcNow < knobTS.AddMilliseconds(50))
+                    return;
 
-            if (rKnob == null)
-                return;
+                RequestVRCKnob? rKnob = RequestVRCControl.GetControlByID("Intensity") as RequestVRCKnob;
 
-            float increment = 1.0f / 16; //16 segments in led display
+                if (rKnob == null)
+                    return;
 
-            if (!isClockwise)
-                increment = -increment;
+                float increment = 1.0f / 16; //16 segments in led display
 
+                if (!isClockwise)
+                    increment = -increment;
 
-            rKnob.Value = (rKnob.Value + increment) % 1;
+                rKnob.Value += increment;
+                if (rKnob.Value < 0)
+                    rKnob.Value += 1;
+                else if (rKnob.Value > 1)
+                    rKnob.Value -= 1;
 
-            rKnob.HandleRequest(null);
-
+                rKnob.HandleRequest(null);
+                knobTS = DateTime.UtcNow;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Knob Error ({ex.Message})");
+            }
         }
 
-        public static void HandleButtonChange(bool isPressed)
+        static void HandleButtonChange(bool isPressed)
         {
-            RequestVRCButton? rButton = RequestVRCControl.GetControlByID("RedButton") as RequestVRCButton;
+            try
+            {
+                RequestVRCButton? rButton = RequestVRCControl.GetControlByID("RedButton") as RequestVRCButton;
 
-            if (rButton == null)
-                return;
+                if (rButton == null)
+                    return;
 
-            rButton.IsPressed = isPressed;
-            rButton.HandleRequest(null);
+                rButton.IsPressed = isPressed;
+                rButton.HandleRequest(null);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Button Error ({ex.Message})");
+            }
         }
-
-        public static void SetButtonOutput(bool isPressed)
-        {
-            SetPin(BUTTON_OUTPUT, isPressed);
-        }
-
-        public static void SetToggleOutput(bool isOn)
-        {
-            SetPin(JOYSTICK_OUTPUT_UP, isOn);
-            SetPin(JOYSTICK_OUTPUT_DOWN, !isOn);
-        }
-
 
         public void Dispose()
         {
             controller?.Dispose();
         }
 
-        private static void SetPin(int pinNumber, bool value)
+        public static void SetPin(int pinNumber, bool value)
         {
             if (Instance == null)
                 return;

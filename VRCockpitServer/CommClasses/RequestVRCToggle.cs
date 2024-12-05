@@ -2,6 +2,8 @@
 
 namespace VRCockpitServer.CommClasses
 {
+    using static GPIOManager;
+
     internal class RequestVRCToggle : RequestVRCControl
     {
         public bool IsOn { get; set; }
@@ -11,7 +13,9 @@ namespace VRCockpitServer.CommClasses
             base.HandleRequest(user);
 
             Console.WriteLine($"RequestToggle: {ControlID} IsOn: {IsOn}");
-            GPIOManager.HandleToggleChange(IsOn);
+
+            SetPin(JOYSTICK_OUTPUT_UP, IsOn);
+            SetPin(JOYSTICK_OUTPUT_DOWN, !IsOn);
 
             return Task.CompletedTask;
         }

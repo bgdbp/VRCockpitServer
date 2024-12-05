@@ -15,4 +15,5 @@ namespace VRCockpitServer.CommClasses
     {
         public abstract Task HandleRequest(UserSession? user);
     }
+
 }

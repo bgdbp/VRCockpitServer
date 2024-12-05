@@ -3,19 +3,36 @@ using System.Net.Sockets;
 using System.Text;
 using VRCockpitServer;
 using System.IO.Ports;
+using VRCockpitServer.CommClasses;
 
 async Task Main()
 {
+    /*
     try
     {
-        using LEDRingManager ledRingManager = await LEDRingManager.Init();
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"LEDRingManager could not be initialized ({ex})");
+        Console.WriteLine($"LEDRingManager could not be initialized ({ex.Message})");
     }
+    */
 
+    using LEDRingManager ledRingManager = await LEDRingManager.Init();
     using GPIOManager gpioManager = GPIOManager.Init();
+
+    RequestVRCToggle rToggle = new() { ControlID = "Lights"};
+    rToggle.IsOn = false;
+    await rToggle.HandleRequest(null);
+
+    RequestVRCButton rButton = new() { ControlID = "RedButton"};
+    rButton.IsPressed = false;
+    await rButton.HandleRequest(null);
+
+    RequestVRCKnob rKnob = new() { ControlID = "Intensity"};
+    rKnob.Value = 0;
+    await rKnob.HandleRequest(null);
+
+    rToggle.IsOn = false;
 
     string hostName = Dns.GetHostName();
     IPHostEntry localhost = Dns.GetHostEntry(hostName);

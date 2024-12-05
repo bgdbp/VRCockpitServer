@@ -6,8 +6,7 @@ namespace VRCockpitServer.CommClasses
     {
         public required string ControlID { get; set; }
         public static Dictionary<string, RequestVRCControl> ControlStates = []; //<ControlID, RequestVRCControl
-        public bool IsInitialSync { get; set; }
-
+        public bool IsInitialSend { get; set; }
 
         public static RequestVRCControl GetControlByID(string controlID)
         {
@@ -16,13 +15,11 @@ namespace VRCockpitServer.CommClasses
 
         public override Task HandleRequest(UserSession? user)
         {
-            if (user == null) return Task.CompletedTask;
-
             // if the server already has an initial state,
             // send that to the client.
-            if (IsInitialSync && ControlStates.TryGetValue(ControlID, out RequestVRCControl? currentState))
+            if (IsInitialSend && ControlStates.TryGetValue(ControlID, out RequestVRCControl? currentState))
             {
-                user.SendRequest(currentState);
+                user?.SendRequest(currentState);
                 return Task.CompletedTask;
             }
 

@@ -71,10 +71,12 @@ namespace VRCockpitServer
             }
             catch (Exception ex)
             {
-                Console.Write(ex.ToString());
+                Console.Write(ex.Message);
             }
             finally
             {
+                users.Remove(this);
+
                 string message = "]";
 
                 byte[] bytes = Encoding.UTF8.GetBytes(message);
@@ -82,7 +84,6 @@ namespace VRCockpitServer
 
                 connection.LingerState = new LingerOption(true, 0);
                 connection.Close();
-                users.Remove(this);
                 Console.WriteLine($"Connection closed.");
             }
         }

@@ -13,7 +13,7 @@ namespace VRCockpitServer.CommClasses
             base.HandleRequest(user);
 
             Console.WriteLine($"RequestKnob: {ControlID} Value: {Value}");
-            LEDRingManager.Instance.SetKnobValue((byte)(Value * 16));
+            LEDRingManager.Instance?.SetKnobValue((byte)(Value * 16));
 
             return Task.CompletedTask;
         }
