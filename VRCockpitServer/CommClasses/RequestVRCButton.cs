@@ -10,7 +10,7 @@ namespace VRCockpitServer.CommClasses
         {
             base.HandleRequest(user);
             Console.WriteLine($"RequestButton: {ControlID} IsPressed: {IsPressed}");
-            GPIOManager.SetButton(IsPressed);
+            GPIOManager.SetButtonOutput(IsPressed);
 
             return Task.CompletedTask;
         }

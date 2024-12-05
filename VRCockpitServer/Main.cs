@@ -12,7 +12,7 @@ async Task Main()
     }
     catch (Exception ex)
     {
-        Console.WriteLine("LEDRingManager could not be initialized.");
+        Console.WriteLine($"LEDRingManager could not be initialized ({ex})");
     }
 
     using GPIOManager gpioManager = GPIOManager.Init();

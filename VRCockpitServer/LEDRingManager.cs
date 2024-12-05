@@ -44,7 +44,7 @@ namespace VRCockpitServer
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Cannot write to LED ring, it is not connected");
+                Console.WriteLine($"Cannot write to LED ring, it is not connected ({ex})");
             }
         }
 

@@ -32,7 +32,7 @@ namespace VRCockpitServer
             return Instance;
         }
 
-        GpioController controller;
+        GpioController controller = null!;
 
         public GPIOManager()
         {
@@ -43,29 +43,29 @@ namespace VRCockpitServer
 
                 //joystick input
                 controller.OpenPin(JOYSTICK_INPUT_UP, PinMode.InputPullUp);
-                controller.RegisterCallbackForPinValueChangedEvent(JOYSTICK_INPUT_UP, PinEventTypes.Falling, (o, e) => { HandleToggleOn(); });
+                controller.RegisterCallbackForPinValueChangedEvent(JOYSTICK_INPUT_UP, PinEventTypes.Falling, (o, e) => { HandleToggleChange(isOn: true); });
 
                 controller.OpenPin(JOYSTICK_INPUT_DOWN, PinMode.InputPullUp);
-                controller.RegisterCallbackForPinValueChangedEvent(JOYSTICK_INPUT_DOWN, PinEventTypes.Falling, (o, e) => { HandleToggleOff(); });
+                controller.RegisterCallbackForPinValueChangedEvent(JOYSTICK_INPUT_DOWN, PinEventTypes.Falling, (o, e) => { HandleToggleChange(isOn: false); });
 
                 //joystick output
-                controller.OpenPin(JOYSTICK_OUTPUT_UP, PinMode.Output); //on
-                controller.OpenPin(JOYSTICK_OUTPUT_DOWN, PinMode.Output); //off
+                controller.OpenPin(JOYSTICK_OUTPUT_UP, PinMode.Output); 
+                controller.OpenPin(JOYSTICK_OUTPUT_DOWN, PinMode.Output); 
 
                 //joystick initialize
-                controller.Write(26, PinValue.High); //initialize toggle to off position
+                controller.Write(JOYSTICK_OUTPUT_UP, PinValue.High); //initialize toggle to off position
 
                 //knob input (knob output is handled in LEDRingManager)
                 controller.OpenPin(KNOB_INPUT_CLOCKWISE, PinMode.InputPullUp);
-                controller.RegisterCallbackForPinValueChangedEvent(KNOB_INPUT_CLOCKWISE, PinEventTypes.Falling, (o, e) => { HandleKnobClockwise(); });
+                controller.RegisterCallbackForPinValueChangedEvent(KNOB_INPUT_CLOCKWISE, PinEventTypes.Falling, (o, e) => { HandleKnobChange(isClockwise: true); });
 
                 controller.OpenPin(KNOB_INPUT_COUNTERCLOCKWISE, PinMode.InputPullUp);
-                controller.RegisterCallbackForPinValueChangedEvent(KNOB_INPUT_COUNTERCLOCKWISE, PinEventTypes.Falling, (o, e) => { HandleKnobCounterClockwise(); });
+                controller.RegisterCallbackForPinValueChangedEvent(KNOB_INPUT_COUNTERCLOCKWISE, PinEventTypes.Falling, (o, e) => { HandleKnobChange(isClockwise: false); });
 
                 //button input
                 controller.OpenPin(BUTTON_INPUT, PinMode.InputPullUp);
-                controller.RegisterCallbackForPinValueChangedEvent(BUTTON_INPUT, PinEventTypes.Falling, (o, e) => { SetButton(isPressed: true); });
-                controller.RegisterCallbackForPinValueChangedEvent(BUTTON_INPUT, PinEventTypes.Rising, (o, e) => { SetButton(isPressed: false); });
+                controller.RegisterCallbackForPinValueChangedEvent(BUTTON_INPUT, PinEventTypes.Falling, (o, e) => { HandleButtonChange(isPressed: true); });
+                controller.RegisterCallbackForPinValueChangedEvent(BUTTON_INPUT, PinEventTypes.Rising, (o, e) => { HandleButtonChange(isPressed: false); });
 
                 //button output
                 controller.OpenPin(BUTTON_OUTPUT, PinMode.Output);
@@ -73,32 +73,42 @@ namespace VRCockpitServer
             }
             catch (Exception ex)
             {
-                controller = null;
-                Console.WriteLine("GPIO not supported on this platform");
+                Console.WriteLine($"GPIO not supported on this platform ({ex})");
             }
         }
 
 
-        public void HandleToggleOn()
+        public static void HandleToggleChange(bool isOn)
         {
+            RequestVRCToggle? rToggle = RequestVRCControl.GetControlByID("Lights") as RequestVRCToggle;
+
+            if (rToggle == null)
+                return;
+
+            rToggle.IsOn = isOn;
+            rToggle.HandleRequest(null);
         }
 
-        public void HandleToggleOff()
+        public static void HandleKnobChange(bool isClockwise)
         {
+            RequestVRCKnob? rKnob = RequestVRCControl.GetControlByID("Intensity") as RequestVRCKnob;
+
+            if (rKnob == null)
+                return;
+
+            float increment = 1.0f / 16; //16 segments in led display
+
+            if (!isClockwise)
+                increment = -increment;
+
+
+            rKnob.Value = (rKnob.Value + increment) % 1;
+
+            rKnob.HandleRequest(null);
 
         }
 
-        public void HandleKnobClockwise()
-        {
-
-        }
-
-        public void HandleKnobCounterClockwise()
-        {
-
-        }
-
-        public void SetButton(bool isPressed)
+        public static void HandleButtonChange(bool isPressed)
         {
             RequestVRCButton? rButton = RequestVRCControl.GetControlByID("RedButton") as RequestVRCButton;
 
@@ -106,8 +116,18 @@ namespace VRCockpitServer
                 return;
 
             rButton.IsPressed = isPressed;
-
             rButton.HandleRequest(null);
+        }
+
+        public static void SetButtonOutput(bool isPressed)
+        {
+            SetPin(BUTTON_OUTPUT, isPressed);
+        }
+
+        public static void SetToggleOutput(bool isOn)
+        {
+            SetPin(JOYSTICK_OUTPUT_UP, isOn);
+            SetPin(JOYSTICK_OUTPUT_DOWN, !isOn);
         }
 
 

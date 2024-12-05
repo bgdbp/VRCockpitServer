@@ -23,8 +23,8 @@ namespace VRCockpitServer
         {
             foreach (UserSession user in users)
             {
-                if (user != null && user == ignoredUser)
-                    continue;
+                if (user == null) continue;
+                if (user == ignoredUser) continue;
 
 
                 user.SendRequest(request);

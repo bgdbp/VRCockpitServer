@@ -11,7 +11,7 @@ namespace VRCockpitServer.CommClasses
             base.HandleRequest(user);
 
             Console.WriteLine($"RequestToggle: {ControlID} IsOn: {IsOn}");
-            GPIOManager.SetToggle(IsOn);
+            GPIOManager.HandleToggleChange(IsOn);
 
             return Task.CompletedTask;
         }

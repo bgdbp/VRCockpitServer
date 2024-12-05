@@ -16,6 +16,8 @@ namespace VRCockpitServer.CommClasses
 
         public override Task HandleRequest(UserSession? user)
         {
+            if (user == null) return Task.CompletedTask;
+
             // if the server already has an initial state,
             // send that to the client.
             if (IsInitialSync && ControlStates.TryGetValue(ControlID, out RequestVRCControl? currentState))
