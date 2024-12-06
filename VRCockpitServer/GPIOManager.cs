@@ -13,14 +13,15 @@ namespace VRCockpitServer
     {
         public const int JOYSTICK_INPUT_UP = 5;
         public const int JOYSTICK_INPUT_DOWN = 6;
-        public const int JOYSTICK_OUTPUT_UP = 16;
-        public const int JOYSTICK_OUTPUT_DOWN = 26;
 
         public const int KNOB_INPUT_CLOCKWISE = 23;
         public const int KNOB_INPUT_COUNTERCLOCKWISE = 24;
 
         public const int BUTTON_INPUT = 17;
+
         public const int BUTTON_OUTPUT = 4;
+        public const int JOYSTICK_OUTPUT_UP = 16;
+        public const int JOYSTICK_OUTPUT_DOWN = 26;
 
         public static GPIOManager? Instance;
 
@@ -89,7 +90,7 @@ namespace VRCockpitServer
         {
             try
             {
-                RequestVRCToggle? rToggle = RequestVRCControl.GetControlByID("Lights") as RequestVRCToggle;
+                RequestVRCToggle? rToggle = RequestVRCControl.GetControlByID("Switch") as RequestVRCToggle;
 
                 if (rToggle == null)
                     return;
@@ -125,7 +126,7 @@ namespace VRCockpitServer
                 if (DateTime.UtcNow < knobTS.AddMilliseconds(50))
                     return;
 
-                RequestVRCKnob? rKnob = RequestVRCControl.GetControlByID("Intensity") as RequestVRCKnob;
+                RequestVRCKnob? rKnob = RequestVRCControl.GetControlByID("Knob") as RequestVRCKnob;
 
                 if (rKnob == null)
                     return;
@@ -154,7 +155,7 @@ namespace VRCockpitServer
         {
             try
             {
-                RequestVRCButton? rButton = RequestVRCControl.GetControlByID("RedButton") as RequestVRCButton;
+                RequestVRCButton? rButton = RequestVRCControl.GetControlByID("Button") as RequestVRCButton;
 
                 if (rButton == null)
                     return;

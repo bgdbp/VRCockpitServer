@@ -20,15 +20,15 @@ async Task Main()
     using LEDRingManager ledRingManager = await LEDRingManager.Init();
     using GPIOManager gpioManager = GPIOManager.Init();
 
-    RequestVRCToggle rToggle = new() { ControlID = "Lights"};
+    RequestVRCToggle rToggle = new() { ControlID = "Switch"};
     rToggle.IsOn = false;
     await rToggle.HandleRequest(null);
 
-    RequestVRCButton rButton = new() { ControlID = "RedButton"};
+    RequestVRCButton rButton = new() { ControlID = "Button"};
     rButton.IsPressed = false;
     await rButton.HandleRequest(null);
 
-    RequestVRCKnob rKnob = new() { ControlID = "Intensity"};
+    RequestVRCKnob rKnob = new() { ControlID = "Knob"};
     rKnob.Value = 0;
     await rKnob.HandleRequest(null);
 
