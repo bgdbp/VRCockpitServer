@@ -9,9 +9,31 @@ to the client. The server should be installed onto a Raspberry Pi 5.
 The VR Cockpit client
 is built directly to the VR Headset, its repository is located here: https://github.com/bgdbp/VRCockpit
 
+**Software required to build this project:**
+
+  Visual Studio Community 2022
+  Arduino IDE
+
+**Hardware used (but not necessarily required to run and test the software):**
+
+  Raspberry Pi 5 Microcomputer
+  Arduino Uno R3 Microcontroller
+
+**Controls and electronics used (but not necessarily required to run and test the hardware):**
+
+  4-way Arcade Joystick
+  Arcade Button
+  Pulse-style Rotary Encoder
+  Adafruit NeoPixel RGB 16 Count LED Ring
+  Red, Blue, and Green through-hole type LEDs with 1k Ohm resistors soldered in-line
+
+**Test and Debug Instructions:**
+
+  You can simply run the server by opening the Visual Studio solution and pressing F5. Once the server is running, you can connect to it with your VRCockpit client. When running this server on Windows, you will need to make exceptions in the Windows Firewall to allow the headset to connect. Running the server on the Pi will not need any firewall exceptions. 
+
 **Build Instructions**
 
-To build this server, clone this repository onto a Windows machine and open the Visual Studio
+To build this server to the Pi, clone this repository onto a Windows machine and open the Visual Studio
 solution file at the root of this repository. We used Visual Studio Community 2022 for this project.
 Under the Build tab, click Publish Selection,
 and then click Publish. Copy the resulting build folder, called linux-arm64 onto the Raspberry Pi and give the
@@ -20,7 +42,7 @@ VRCockpitServer program execute permissions by running the following command in 
 To have the server boot when the Pi is powered on, create
 a systemd service for the VRCockpitServer program, this is optional. 
 
-The pin mapping for the physical controls and LED control state indicators is
+Wire all the controls to the Pi's GPIO pins according to their pin mappings. The pin mapping for the physical controls and LED control state indicators is
 located in the top of GPIOManager.cs
 
 For the Adafruit Neopixel 16 count LED Ring to function, it utilizes an Arduino Uno R3. Open the LEDRing.ino
