@@ -11,7 +11,7 @@ is built directly to the VR Headset, its repository is located here: https://git
 
 **Software required to build this project:**
 
-  Visual Studio Community 2022
+  Visual Studio Community 2022  
   Arduino IDE
 
 **Hardware used (but not necessarily required to run and test the software):**
