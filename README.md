@@ -16,7 +16,7 @@ is built directly to the VR Headset, its repository is located here: https://git
 
 **Hardware used (but not necessarily required to run and test the software):**
 
-  Raspberry Pi 5 Microcomputer
+  Raspberry Pi 5 Microcomputer  
   Arduino Uno R3 Microcontroller
 
 **Controls and electronics used (but not necessarily required to run and test the hardware):**
