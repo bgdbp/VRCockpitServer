@@ -21,11 +21,11 @@ is built directly to the VR Headset, its repository is located here: https://git
 
 **Controls and electronics used (but not necessarily required to run and test the hardware):**
 
-  4-way Arcade Joystick
-  Arcade Button
-  Pulse-style Rotary Encoder
-  Adafruit NeoPixel RGB 16 Count LED Ring
-  Red, Blue, and Green through-hole type LEDs with 1k Ohm resistors soldered in-line
+  4-way Arcade Joystick  
+  Arcade Button  
+  Pulse-style Rotary Encoder  
+  Adafruit NeoPixel RGB 16 Count LED Ring  
+  Red, Blue, and Green through-hole type LEDs with 1k Ohm resistors soldered in-line  
 
 **Test and Debug Instructions:**
 
